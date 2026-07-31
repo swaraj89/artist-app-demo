@@ -1,5 +1,7 @@
 package io.github.swaraj89.spotify_artist_batch_loader.artist;
 
+import io.github.swaraj89.spotify_artist_batch_loader.constants.ARTIST_TYPE;
+import io.github.swaraj89.spotify_artist_batch_loader.constants.GENDER;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
