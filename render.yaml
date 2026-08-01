@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: spotify-service
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./service/Dockerfile
+    dockerContext: ./service
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://artist-app-demo.onrender.com
