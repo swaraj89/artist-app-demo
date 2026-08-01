@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: spotify-service
+    name: artist-service
     env: docker
     region: singapore
     plan: free
@@ -11,11 +11,13 @@ services:
         value: prod
       - key: DATABASE_URL
         sync: false
+      - key: BATCH_JOB_ENABLED
+        value: "false"
       - key: CORS_ALLOWED_ORIGINS
-        value:  https://artist-app-demo.onrender.com
+        value: https://artist-ui.onrender.com
 
   - type: web
-    name: spotify-ui
+    name: artist-ui
     env: docker
     region: singapore
     plan: free
@@ -23,4 +25,4 @@ services:
     dockerContext: ./ui
     envVars:
       - key: VITE_API_BASE_URL
-        value:  https://artist-app-demo.onrender.com
+        value: https://artist-service.onrender.com
