@@ -1,0 +1,1 @@
+org.springframework.boot.env.EnvironmentPostProcessor=io.github.swaraj89.spotify_artist_batch_loader.config.DatabaseUrlEnvironmentPostProcessor

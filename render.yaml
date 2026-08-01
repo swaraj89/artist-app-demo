@@ -2,7 +2,7 @@ services:
   - type: web
     name: spotify-service
     env: docker
-    region: oregon
+    region: singapore
     plan: free
     dockerfilePath: ./service/Dockerfile
     dockerContext: ./service
