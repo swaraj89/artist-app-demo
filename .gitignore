@@ -33,6 +33,9 @@ build/
 .vscode/
 
 application.properties
+.env
+.env.*
+!.env.example
 
 # Logs
 logs

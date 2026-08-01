@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: spotify-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-spotify_artists}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  service:
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    container_name: spotify-service
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/spotify_artists}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: spotify-ui
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+      NODE_ENV: production
+    ports:
+      - "5173:80"
+    depends_on:
+      - service
+
+volumes:
+  postgres_data:
