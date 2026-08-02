@@ -81,16 +81,11 @@ export function ArtistForm({ initialData, onSubmit, onClose, errorMap = {}, subm
           <Select
             id="gender"
             value={form.gender ?? ''}
-            onChange={(event) => handleChange('gender', event.target.value as Artist['gender'])}
-            aria-invalid={Boolean(fieldErrors.gender)}
-          >
-            <option value="">Select gender</option>
-            {genderOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => handleChange('gender', value as Artist['gender'])}
+            options={[{ label: 'Select gender', value: '' }, ...genderOptions]}
+            placeholder="Select gender"
+            className="w-full"
+          />
           {fieldErrors.gender ? <p className="mt-1 text-sm text-red-600">{fieldErrors.gender}</p> : null}
         </div>
 
@@ -110,16 +105,11 @@ export function ArtistForm({ initialData, onSubmit, onClose, errorMap = {}, subm
           <Select
             id="artistType"
             value={form.artistType ?? ''}
-            onChange={(event) => handleChange('artistType', event.target.value as Artist['artistType'])}
-            aria-invalid={Boolean(fieldErrors.artistType)}
-          >
-            <option value="">Select type</option>
-            {artistTypeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => handleChange('artistType', value as Artist['artistType'])}
+            options={[{ label: 'Select type', value: '' }, ...artistTypeOptions]}
+            placeholder="Select type"
+            className="w-full"
+          />
           {fieldErrors.artistType ? <p className="mt-1 text-sm text-red-600">{fieldErrors.artistType}</p> : null}
         </div>
 

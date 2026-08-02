@@ -27,33 +27,16 @@ export interface Artist {
   percentOfCollaborativeStreams: number | null
 }
 
-export interface PageResponse<T> {
-  content: T[]
-  pageable: {
-    pageNumber: number
-    pageSize: number
-    offset: number
-    paged: boolean
-    unpaged: boolean
-    sort: {
-      sorted: boolean
-      unsorted: boolean
-      empty: boolean
-    }
-  }
-  totalElements: number
-  totalPages: number
-  last: boolean
-  first: boolean
-  numberOfElements: number
+export interface PageMetadata {
   size: number
   number: number
-  sort: {
-    sorted: boolean
-    unsorted: boolean
-    empty: boolean
-  }
-  empty: boolean
+  totalElements: number
+  totalPages: number
+}
+
+export interface PageResponse<T> {
+  content: T[]
+  page: PageMetadata
 }
 
 export interface ArtistRequestDto {

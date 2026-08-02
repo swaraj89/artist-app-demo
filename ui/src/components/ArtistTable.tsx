@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Eye, Pencil, Trash2, Plus } from 'lucide-react'
 import { useArtists } from '../hooks/useArtists'
 import type { Artist } from '../lib/api'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from './ui/AlertDialog'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
+import { Select } from './ui/Select'
+import { useDebounce } from '../hooks/useDebounce'
 
 interface ArtistTableProps {
   onOpenCreate: () => void
@@ -94,18 +96,17 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
   const [sortBy, setSortBy] = useState('artistName,asc')
   const pageOptions = [5, 8, 12, 20]
 
-  useEffect(() => {
-    const handler = window.setTimeout(() => {
-      setArtistNameFilter(search.trim())
-      setPage(1)
-    }, 400)
+  const debouncedSearch = useDebounce(search, 300)
 
-    return () => window.clearTimeout(handler)
-  }, [search])
+  useEffect(() => {
+    setArtistNameFilter(debouncedSearch.trim())
+    setPage(1)
+  }, [debouncedSearch])
 
   const pageQuery = listQuery(page - 1, pageSize, sortBy, artistNameFilter, country || undefined)
   const artists = pageQuery.data?.content ?? []
-  const pageCount = Math.max(1, pageQuery.data?.totalPages ?? 1)
+  const pageCount = Math.max(1, pageQuery.data?.page?.totalPages ?? 1)
+  const totalElements = pageQuery.data?.page?.totalElements ?? 0
 
   const getSortDirection = (field: string) => {
     if (!sortBy.startsWith(field)) return ''
@@ -125,6 +126,14 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
 
   const countryQuery = artistCountriesQuery()
   const countryOptions = countryQuery.data ?? []
+  const countrySelectOptions = useMemo(
+    () => [{ label: 'All countries', value: '' }, ...countryOptions.map((option) => ({ label: option, value: option }))],
+    [countryOptions],
+  )
+  const pageSizeOptions = useMemo(
+    () => pageOptions.map((size) => ({ label: String(size), value: String(size) })),
+    [pageOptions],
+  )
 
   const getPageItems = () => {
     if (pageCount <= 5) {
@@ -150,9 +159,28 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
   if (pageQuery.isLoading) {
     return (
       <div className="space-y-4">
-        {[...Array(pageSize)].map((_, idx) => (
-          <div key={idx} className="h-14 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
-        ))}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="h-10 w-full max-w-md rounded-lg bg-slate-200 dark:bg-slate-800" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="h-10 w-32 rounded-lg bg-slate-200 dark:bg-slate-800" />
+            <div className="h-10 w-24 rounded-lg bg-slate-200 dark:bg-slate-800" />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-700">
+          <div className="space-y-3 p-4">
+            {[...Array(8)].map((_, idx) => (
+              <div key={idx} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950">
+                <div className="h-4 w-1/2 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="h-3 w-24 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-3 w-20 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-3 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -174,20 +202,18 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
           </div>
           <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
             <label htmlFor="country-filter" className="font-medium">Country:</label>
-            <select
+            <Select
               id="country-filter"
               value={country}
-              onChange={(event) => {
-                setCountry(event.target.value)
+              onChange={(value) => {
+                setCountry(value)
                 setPage(1)
               }}
-              className="rounded-md border border-slate-300 bg-transparent px-2 py-1 text-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:focus:border-sky-500 dark:focus:ring-sky-500/20"
-            >
-              <option value="">All countries</option>
-              {countryOptions.map((countryOption) => (
-                <option key={countryOption} value={countryOption}>{countryOption}</option>
-              ))}
-            </select>
+              options={countrySelectOptions}
+              searchable
+              placeholder="All countries"
+              className="w-56"
+            />
           </div>
           {(artistNameFilter || country) ? (
             <Button
@@ -207,16 +233,14 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
             <label htmlFor="page-size" className="font-medium">Per page:</label>
-            <select
+            <Select
               id="page-size"
-              value={pageSize}
-              onChange={(event) => handlePageSizeChange(Number(event.target.value))}
-              className="rounded-md border border-slate-300 bg-transparent px-2 py-1 text-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:focus:border-sky-500 dark:focus:ring-sky-500/20"
-            >
-              {pageOptions.map((size) => (
-                <option key={size} value={size}>{size}</option>
-              ))}
-            </select>
+              value={String(pageSize)}
+              onChange={(value) => handlePageSizeChange(Number(value))}
+              options={pageSizeOptions}
+              placeholder="8"
+              className="w-28"
+            />
           </div>
           <Button onClick={onOpenCreate} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" /> Add Artist
@@ -273,7 +297,7 @@ export function ArtistTable({ onOpenCreate, onEditArtist, onViewArtist }: Artist
 
           <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              Showing {artists.length} of {artists.length} artists on page {page} of {pageCount}
+              Showing {artists.length} of {totalElements} artists on page {page} of {pageCount}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
