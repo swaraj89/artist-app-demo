@@ -14,7 +14,7 @@ services:
       - key: BATCH_JOB_ENABLED
         value: "false"
       - key: CORS_ALLOWED_ORIGINS
-        value: https://artist-ui.onrender.com
+        value: https://artist-app-ci2o.onrender.com/
 
   - type: web
     name: artist-ui
